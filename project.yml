@@ -1,0 +1,34 @@
+name: TextBoost
+options:
+  deploymentTarget:
+    macOS: "14.0"
+  bundleIdPrefix: com.nathanskidmore
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+settings:
+  SWIFT_VERSION: "5.10"
+  MACOSX_DEPLOYMENT_TARGET: "14.0"
+targets:
+  TextBoost:
+    type: application
+    platform: macOS
+    sources:
+      - path: TextBoost
+        excludes:
+          - Resources/Info.plist
+    settings:
+      base:
+        INFOPLIST_FILE: TextBoost/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: TextBoost/Resources/TextBoost.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.nathanskidmore.TextBoost
+        PRODUCT_NAME: TextBoost
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: BAE959EA6F9482FF04123B5C53A4A127ACDAC4FB
+        PROVISIONING_PROFILE_SPECIFIER: ""
+        ENABLE_HARDENED_RUNTIME: false
+    info:
+      path: TextBoost/Resources/Info.plist
+      properties:
+        LSUIElement: true
+        NSAppleEventsUsageDescription: "TextBoost needs to interact with other applications to capture and insert text."
