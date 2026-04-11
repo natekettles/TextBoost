@@ -1,6 +1,14 @@
-# TextBoost
+<p align="center">
+  <img src="assets/icon.png" width="128" alt="TextBoost icon">
+</p>
 
-A lightweight macOS menu bar app for AI-powered text rewrites. Select text in any app, hit a hotkey, and get it rewritten instantly using your own API key (Anthropic or OpenAI).
+<h1 align="center">TextBoost</h1>
+
+<p align="center">A lightweight macOS menu bar app for AI-powered text rewrites.<br>Select text in any app, hit a hotkey, and get it rewritten instantly using your own API key.</p>
+
+<p align="center">
+  <img src="assets/screenshot1.png" width="500" alt="TextBoost floating panel">
+</p>
 
 ## Features
 
