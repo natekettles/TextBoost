@@ -27,6 +27,14 @@ final class SettingsManager: ObservableObject {
     @AppStorage("anthropic_model") var anthropicModel: String = "claude-sonnet-4-20250514"
     @AppStorage("openai_model") var openAIModel: String = "gpt-4o"
 
+    // Hotkey settings (defaults: Control + Space)
+    @AppStorage("hotkey_keycode") var hotkeyKeyCode: Int = 49 {
+        didSet { NotificationCenter.default.post(name: .hotkeyDidChange, object: nil) }
+    }
+    @AppStorage("hotkey_modifiers") var hotkeyModifiers: Int = 262144 { // NSEvent.ModifierFlags.control.rawValue
+        didSet { NotificationCenter.default.post(name: .hotkeyDidChange, object: nil) }
+    }
+
     var activeModel: String {
         switch provider {
         case .anthropic: return anthropicModel
@@ -72,3 +80,7 @@ final class SettingsManager: ObservableObject {
 }
 
 extension AIProvider: RawRepresentable {}
+
+extension Notification.Name {
+    static let hotkeyDidChange = Notification.Name("hotkeyDidChange")
+}
