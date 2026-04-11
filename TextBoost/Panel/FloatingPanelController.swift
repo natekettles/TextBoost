@@ -33,7 +33,7 @@ final class FloatingPanelController {
     }
 
     private func createPanel() {
-        let rect = NSRect(x: 0, y: 0, width: 480, height: 520)
+        let rect = NSRect(x: 0, y: 0, width: 500, height: 540)
         panel = FloatingPanel(contentRect: rect)
 
         let hostingView = NSHostingView(
@@ -45,18 +45,18 @@ final class FloatingPanelController {
     }
 
     private func positionPanel() {
-        guard let panel, let screen = NSScreen.main else { return }
+        guard let panel else { return }
 
+        // Use the screen containing the mouse cursor (handles multi-monitor)
         let mouseLocation = NSEvent.mouseLocation
+        let screen = NSScreen.screens.first { NSMouseInRect(mouseLocation, $0.frame, false) } ?? NSScreen.main
+        guard let screen else { return }
+
         let panelSize = panel.frame.size
         let visibleFrame = screen.visibleFrame
 
-        var x = mouseLocation.x - panelSize.width / 2
-        var y = mouseLocation.y - panelSize.height / 2
-
-        // Clamp to screen bounds
-        x = max(visibleFrame.minX, min(x, visibleFrame.maxX - panelSize.width))
-        y = max(visibleFrame.minY, min(y, visibleFrame.maxY - panelSize.height))
+        let x = visibleFrame.midX - panelSize.width / 2
+        let y = visibleFrame.midY - panelSize.height / 2
 
         panel.setFrameOrigin(NSPoint(x: x, y: y))
     }

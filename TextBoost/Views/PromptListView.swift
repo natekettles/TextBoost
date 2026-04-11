@@ -11,30 +11,33 @@ struct PromptListView: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: TB.spacingXS) {
             // Search field
-            HStack {
-                TextField("Search for a prompt or run a custom instruction...", text: $searchText)
+            HStack(spacing: TB.spacingXS) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.tertiary)
+
+                TextField("Search prompts...", text: $searchText)
                     .textFieldStyle(.plain)
+                    .font(.system(size: 13))
                     .onSubmit {
                         executeSelected()
                     }
-
-                Image(systemName: "mic")
-                    .foregroundStyle(.tertiary)
             }
-            .padding(10)
-            .background(.background)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, TB.spacingSM)
+            .padding(.vertical, 9)
+            .background(.background.opacity(0.6))
+            .clipShape(RoundedRectangle(cornerRadius: TB.cornerSM, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(.separator, lineWidth: 1)
+                RoundedRectangle(cornerRadius: TB.cornerSM, style: .continuous)
+                    .strokeBorder(.primary.opacity(0.08), lineWidth: 1)
             )
 
             // Prompt list
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 2) {
+                    LazyVStack(spacing: 3) {
                         ForEach(Array(filteredPrompts.enumerated()), id: \.element.id) { index, prompt in
                             PromptRow(
                                 prompt: prompt,
@@ -42,17 +45,23 @@ struct PromptListView: View {
                                 action: { state.executePrompt(prompt) }
                             )
                             .id(prompt.id)
+                            .onHover { hovering in
+                                if hovering {
+                                    selectedIndex = index
+                                }
+                            }
                         }
 
                         if !searchText.isEmpty && filteredPrompts.isEmpty {
                             customInstructionRow
                         }
                     }
+                    .padding(.vertical, 2)
                 }
-                .frame(maxHeight: 220)
+                .frame(maxHeight: 230)
                 .onChange(of: selectedIndex) { _, newIndex in
                     if newIndex < filteredPrompts.count {
-                        withAnimation {
+                        withAnimation(.easeOut(duration: 0.15)) {
                             proxy.scrollTo(filteredPrompts[newIndex].id, anchor: .center)
                         }
                     }
@@ -88,18 +97,19 @@ struct PromptListView: View {
 
     private var customInstructionRow: some View {
         Button(action: executeCustomInstruction) {
-            HStack {
+            HStack(spacing: TB.spacingXS) {
                 Image(systemName: "sparkles")
+                    .font(.system(size: 13, weight: .medium))
                 Text("Run: \"\(searchText)\"")
+                    .font(.system(size: 13, weight: .medium))
                 Spacer()
-                Image(systemName: "return")
-                    .foregroundStyle(.tertiary)
+                KeyBadge(text: "\u{21B5}")
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, TB.spacingSM)
             .padding(.vertical, 10)
-            .background(Color.accentColor)
             .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(TB.accentGradient)
+            .clipShape(RoundedRectangle(cornerRadius: TB.cornerSM, style: .continuous))
         }
         .buttonStyle(.plain)
     }
@@ -117,8 +127,6 @@ struct PromptListView: View {
 
 // MARK: - Keyboard Handler
 
-/// NSView-based key event interceptor for arrow keys and Enter.
-/// SwiftUI doesn't have a native way to handle these without stealing focus from the text field.
 private struct KeyboardHandlerView: NSViewRepresentable {
     let onUp: () -> Void
     let onDown: () -> Void
@@ -144,18 +152,26 @@ class KeyInterceptorView: NSView {
     var onDown: (() -> Void)?
     var onEnter: (() -> Void)?
 
+    private var monitor: Any?
+
     override var acceptsFirstResponder: Bool { false }
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
-        // Monitor key events locally on this window
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+
+        // Clean up any existing monitor
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+
+        guard window != nil else { return }
+
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, self.window == event.window else { return event }
 
             switch Int(event.keyCode) {
             case 126: // Up arrow
                 self.onUp?()
-                return nil // consume the event
+                return nil
             case 125: // Down arrow
                 self.onDown?()
                 return nil
@@ -166,6 +182,18 @@ class KeyInterceptorView: NSView {
                 return event
             }
         }
+    }
+
+    override func viewDidMoveToSuperview() {
+        super.viewDidMoveToSuperview()
+        if superview == nil, let monitor {
+            NSEvent.removeMonitor(monitor)
+            self.monitor = nil
+        }
+    }
+
+    deinit {
+        if let monitor { NSEvent.removeMonitor(monitor) }
     }
 }
 
@@ -178,26 +206,43 @@ private struct PromptRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack {
+            HStack(spacing: TB.spacingSM) {
                 Image(systemName: prompt.icon)
-                    .frame(width: 20)
-                Text(prompt.name)
-                    .fontWeight(isSelected ? .medium : .regular)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(isSelected ? .white : .secondary)
+                    .frame(width: 22, height: 22)
+                    .background(
+                        isSelected
+                            ? AnyShapeStyle(.white.opacity(0.2))
+                            : AnyShapeStyle(.primary.opacity(0.05))
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: TB.cornerXS, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(prompt.name)
+                        .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
+                    Text(prompt.shortDescription)
+                        .font(.system(size: 11))
+                        .opacity(isSelected ? 0.75 : 0.45)
+                }
+
                 Spacer()
-                Image(systemName: isSelected ? "return" : "arrow.down")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.quaternary)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+
+                if isSelected {
+                    KeyBadge(text: "\u{21B5}")
+                        .opacity(0.8)
+                }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(isSelected ? Color.accentColor : Color.clear)
+            .padding(.horizontal, TB.spacingSM)
+            .padding(.vertical, 9)
+            .background(
+                RoundedRectangle(cornerRadius: TB.cornerSM, style: .continuous)
+                    .fill(isSelected ? AnyShapeStyle(TB.accentGradient) : AnyShapeStyle(.clear))
+            )
             .foregroundStyle(isSelected ? .white : .primary)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .contentShape(RoundedRectangle(cornerRadius: TB.cornerSM, style: .continuous))
         }
         .buttonStyle(.plain)
+        .animation(.easeOut(duration: 0.12), value: isSelected)
     }
 }

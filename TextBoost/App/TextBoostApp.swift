@@ -9,14 +9,12 @@ struct TextBoostApp: App {
         MenuBarExtra("TextBoost", image: "MenuBarIcon") {
             Button("Settings...") {
                 showInDock(true)
-                NSApp.activate()
+                openWindow(id: "settings")
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    openWindow(id: "settings")
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        NSApp.windows
-                            .first { $0.identifier?.rawValue.contains("settings") == true }?
-                            .makeKeyAndOrderFront(nil)
-                    }
+                    NSApp.activate()
+                    NSApp.windows
+                        .first { $0.identifier?.rawValue.contains("settings") == true }?
+                        .makeKeyAndOrderFront(nil)
                 }
             }
             .keyboardShortcut(",", modifiers: .command)
@@ -32,8 +30,8 @@ struct TextBoostApp: App {
                     showInDock(false)
                 }
         }
-        .defaultSize(width: 550, height: 480)
-        .windowResizability(.contentSize)
+        .defaultSize(width: 900, height: 560)
+        .windowResizability(.contentMinSize)
     }
 
     private func showInDock(_ show: Bool) {

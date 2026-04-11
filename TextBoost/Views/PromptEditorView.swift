@@ -28,49 +28,85 @@ struct PromptEditorView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(isNew ? "New Prompt" : "Edit Prompt")
-                .font(.headline)
-
-            Form {
-                TextField("Name", text: $name)
-
-                TextField("SF Symbol icon (e.g. envelope)", text: $icon)
-                HStack(spacing: 8) {
-                    if !icon.isEmpty {
-                        Image(systemName: icon)
-                            .frame(width: 20)
-                    }
-                    Text("Preview")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                TextField("Short description", text: $shortDescription)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("System prompt")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextEditor(text: $systemPrompt)
-                        .font(.body.monospaced())
-                        .frame(minHeight: 120)
-                        .scrollContentBackground(.hidden)
-                        .padding(4)
-                        .background(.background)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(.separator, lineWidth: 1)
-                        )
-                }
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text(isNew ? "New Prompt" : "Edit Prompt")
+                    .font(.system(size: 16, weight: .bold))
+                Spacer()
             }
-            .formStyle(.grouped)
+            .padding(.horizontal, TB.spacingLG)
+            .padding(.top, TB.spacingLG)
+            .padding(.bottom, TB.spacingSM)
 
+            Divider()
+
+            // Form
+            ScrollView {
+                VStack(alignment: .leading, spacing: TB.spacingMD) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Name")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        TextField("Prompt name", text: $name)
+                            .textFieldStyle(.roundedBorder)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Icon")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        HStack(spacing: TB.spacingSM) {
+                            TextField("SF Symbol name (e.g. envelope)", text: $icon)
+                                .textFieldStyle(.roundedBorder)
+                            if !icon.isEmpty {
+                                Image(systemName: icon)
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(TB.accent)
+                                    .frame(width: 32, height: 32)
+                                    .background(TB.accent.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: TB.cornerXS, style: .continuous))
+                            }
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Description")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        TextField("Brief description", text: $shortDescription)
+                            .textFieldStyle(.roundedBorder)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("System Prompt")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        TextEditor(text: $systemPrompt)
+                            .font(.system(size: 13, design: .monospaced))
+                            .scrollContentBackground(.hidden)
+                            .padding(TB.spacingXS)
+                            .frame(minHeight: 140)
+                            .background(.background)
+                            .clipShape(RoundedRectangle(cornerRadius: TB.cornerSM, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: TB.cornerSM, style: .continuous)
+                                    .strokeBorder(.primary.opacity(0.08), lineWidth: 1)
+                            )
+                    }
+                }
+                .padding(TB.spacingLG)
+            }
+
+            Divider()
+
+            // Footer buttons
             HStack {
                 Spacer()
                 Button("Cancel", action: onCancel)
                     .keyboardShortcut(.cancelAction)
-                Button(isNew ? "Add" : "Save") {
+
+                Button(isNew ? "Add Prompt" : "Save") {
                     var updated = prompt
                     updated.name = name.trimmingCharacters(in: .whitespaces)
                     updated.icon = icon.trimmingCharacters(in: .whitespaces)
@@ -80,9 +116,12 @@ struct PromptEditorView: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(!isValid)
+                .buttonStyle(.borderedProminent)
+                .tint(TB.accent)
             }
+            .padding(.horizontal, TB.spacingLG)
+            .padding(.vertical, TB.spacingSM)
         }
-        .padding()
-        .frame(minWidth: 500, maxWidth: 500, minHeight: 400)
+        .frame(minWidth: 480, maxWidth: 480, minHeight: 440)
     }
 }

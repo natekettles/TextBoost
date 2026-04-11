@@ -14,11 +14,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelController = FloatingPanelController(textCaptureService: textCaptureService)
         hotkeyManager = HotkeyManager()
 
-        hotkeyManager.register(keyCode: 49, modifiers: UInt32(controlKey), handler: { [weak self] in
-            self?.handleHotkey()
-        })
+        registerHotkey()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(hotkeySettingsChanged),
+            name: .hotkeyDidChange,
+            object: nil
+        )
 
         promptForAccessibility()
+    }
+
+    private func registerHotkey() {
+        let settings = SettingsManager.shared
+        hotkeyManager.unregister()
+        hotkeyManager.register(
+            keyCode: UInt32(settings.hotkeyKeyCode),
+            modifiers: UInt32(settings.hotkeyModifiers),
+            handler: { [weak self] in self?.handleHotkey() }
+        )
+    }
+
+    @objc private func hotkeySettingsChanged() {
+        registerHotkey()
     }
 
     private func handleHotkey() {
